@@ -1,0 +1,17 @@
+[package]
+name = "forte_world"
+license = "MIT"
+description = "A semi-ECS implementation for the Forte Engine."
+version = "0.1.0"
+edition = "2021"
+exclude = ["assets/"]
+
+[dependencies]
+cgmath = "0.18"
+specs = "0.20"
+pollster = "0.3"
+wgpu = "0.18"
+forte_cubes = "0.1.0"
+forte_engine = "0.1.1"
+
+[dev-dependencies]
