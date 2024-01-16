@@ -1,22 +1,20 @@
+use cgmath::ElementWise;
 use forte_cubes::models::{CubeEngine, cubes::CubeModel, file::SBFile, DrawCubes};
 use forte_engine::{render::{render_engine::RenderEngine, primitives::cameras::{Camera, CameraController}, render_utils}, lights::{LightEngine, SetupLights}, EngineApp, run_app};
-use forte_world::{nodes::*, define_components};
+use forte_world::define_world;
 
-define_components!(
-    Components,
+define_world!(
     TestApp,
-    DrawNodes,
-    draw_node,
     [
         CubeModel => {
             DATA => CubeModel,
-            ADDED => |_: &mut TestApp, _: &mut Node<Components, TestApp>| { println!("Added"); },
-            UPDATE => |_: &mut TestApp, _: &mut Node<Components, TestApp>| { println!("Updated"); },
+            ADDED => |_: &mut Node| {},
+            UPDATE => |_: &mut Node| {},
             RENDER => |pass: &mut wgpu::RenderPass<'a>, app: &'b TestApp, data: &'b CubeModel| {
                 pass.prepare_cube_engine(&app.cube_engine, &app.camera);
                 pass.draw_cube_model(&app.render_engine, &app.cube_engine, data);
             },
-            REMOVED => |_: &mut TestApp, _: &mut Node<Components, TestApp>| { println!("Removed"); }
+            REMOVED => |_: &mut Node| {}
         }
     ]
 );
@@ -27,7 +25,7 @@ pub struct TestApp {
     cube_engine: CubeEngine,
     camera: Camera,
     controller: CameraController,
-    root: Node<Components, TestApp>
+    root: Node
 }
 
 impl EngineApp for TestApp {
@@ -49,8 +47,9 @@ impl EngineApp for TestApp {
         // create nodes
         let mut root = Node::default();
         let mut model = Node::default();
-        model.component = Components::CubeModel(SBFile::load("assets/warrior.json").as_model(&mut engine));
-        root.children.push(model);
+        model.component = Component::CubeModel(SBFile::load("assets/warrior.json").as_model(&mut engine));
+        model.rel_min_dimensions = Dimensions { from: Vector3 { x: -1.0, y: -1.0, z: -1.0 }, to: Vector3 { x: 1.0, y: 1.0, z: 1.0 } };
+        root.add_child(model);
 
         // create final app
         Self {
@@ -60,8 +59,9 @@ impl EngineApp for TestApp {
         }
     }
 
-
     fn update(&mut self) {
+        self.root.update(&Transform::default());
+
         // start render
         let resources = render_utils::prepare_render(&self.render_engine);
         let mut resources = if resources.is_ok() { resources.unwrap() } else { return };
