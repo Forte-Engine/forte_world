@@ -1,24 +1,33 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, marker::PhantomData};
 
-use cgmath::Vector3;
-use forte_engine::math::transforms::Transform;
+use forte_engine::{math::transforms::Transform, EngineApp};
 
-pub trait ComponentsDef: Debug + Default {}
+use crate::dimensions::Dimensions;
 
-pub struct Node<C: ComponentsDef> {
-    pub transform: Transform,
-    pub global_transform: Transform,
-    pub dimensions: Vector3<f32>,
-    pub component: C
+pub trait ComponentsDef<A: EngineApp>: Debug + Default {
+    fn added(&mut self, app: &mut A, node: &mut Node<Self, A>);
+    fn update(&mut self, app: &mut A, node: &mut Node<Self, A>);
+    fn remove(&mut self, app: &mut A, node: &mut Node<Self, A>);
 }
 
-impl <C: ComponentsDef> Default for Node<C> {
+pub struct Node<C: ComponentsDef<A>, A: EngineApp> {
+    pub transform: Transform,
+    pub global_transform: Transform,
+    pub dimensions: Dimensions,
+    pub component: C,
+    pub children: Vec<Node<C, A>>,
+    phantom: PhantomData<A>
+}
+
+impl <C: ComponentsDef<A>, A: EngineApp> Default for Node<C, A> {
     fn default() -> Self {
         Self {
             transform: Transform::default(),
             global_transform: Transform::default(),
-            dimensions: Vector3 { x: 0.0, y: 0.0, z: 0.0 },
-            component: C::default()
+            dimensions: Dimensions::default(),
+            component: C::default(),
+            children: Vec::new(),
+            phantom: PhantomData::default()
         }
     }
 }

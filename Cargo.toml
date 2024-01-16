@@ -13,7 +13,7 @@ wgpu = "0.18"
 winit = "0.28"
 env_logger = "0.10"
 log = "0.4"
-forte_engine = "0.1.1"
+forte_engine = "0.1.2"
 
 [dev-dependencies]
 forte_cubes = "0.1.0"
